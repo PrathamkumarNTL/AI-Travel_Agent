@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Travel Agent</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { width: 300px; padding: 10px; }
+    button { padding: 10px; }
+    #output { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>AI Travel Planner 🌍</h2>
+
+<input type="text" id="userInput" placeholder="Plan my Goa trip for 3 days under 10k">
+<button onclick="sendMessage()">Ask</button>
+
+<div id="output"></div>
+
+<script>
+async function sendMessage() {
+  const input = document.getElementById("userInput").value;
+
+  const res = await fetch("/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message: input })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("output").innerHTML = `
+    <h3>Trip to ${data.city}</h3>
+    <p><b>Days:</b> ${data.days}</p>
+    <p><b>Weather:</b> ${data.weather}</p>
+    <p><b>Places:</b> ${data.places.join(", ")}</p>
+    <p><b>Restaurants:</b> ${data.restaurants.join(", ")}</p>
+    <p><b>Total Cost:</b> ₹${data.cost.total}</p>
+    <p><b>Distance:</b> ${data.route.distance_km} km</p>
+  `;
+}
+</script>
+
+</body>
+</html>
