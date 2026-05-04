@@ -5,33 +5,36 @@
   <style>
     body { font-family: Arial; padding: 20px; }
     input, button { padding: 10px; margin: 5px; }
-    #chat, #expenses { margin-top: 20px; }
-    .box { border: 1px solid #ccc; padding: 15px; margin-top: 10px; }
+    textarea { width: 100%; height: 350px; }
+    .box { border: 1px solid #ccc; padding: 15px; margin-top: 15px; }
   </style>
 </head>
 <body>
 
 <h2>🌍 AI Travel Planner</h2>
 
-<!-- CHAT -->
-<input type="text" id="userInput" placeholder="Plan my Goa trip for 3 days under 10k">
-<button onclick="sendMessage()">Ask</button>
+<input type="text" id="userInput" placeholder="Plan Goa trip for 3 days">
+<button onclick="planTrip()">Plan Trip</button>
 
-<div id="chat" class="box"></div>
+<div class="box">
+  <h3>🧠 Itinerary</h3>
+  <textarea id="output"></textarea>
+</div>
 
 <hr>
 
-<!-- EXPENSE TRACKER -->
-<h3>👥 Group Expenses</h3>
+<h3>💰 Expense Tracker</h3>
 
-<input type="text" id="name" placeholder="Name">
+<input type="text" id="purpose" placeholder="What for?">
+<input type="text" id="person" placeholder="Who paid?">
 <input type="number" id="amount" placeholder="Amount">
-<button onclick="addExpense()">Add Expense</button>
 
-<div id="expenses" class="box"></div>
+<button onclick="addExpense()">Add</button>
+
+<div class="box" id="expenses"></div>
 
 <script>
-async function sendMessage() {
+async function planTrip() {
   const input = document.getElementById("userInput").value;
 
   const res = await fetch("/chat", {
@@ -42,24 +45,23 @@ async function sendMessage() {
 
   const data = await res.json();
 
-  document.getElementById("chat").innerText = data.ai_text;
+  document.getElementById("output").value = data.itinerary;
 }
 
-// Add expense
 async function addExpense() {
-  const name = document.getElementById("name").value;
+  const purpose = document.getElementById("purpose").value;
+  const person = document.getElementById("person").value;
   const amount = parseInt(document.getElementById("amount").value);
 
   await fetch("/add_expense", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, amount })
+    body: JSON.stringify({ purpose, person, amount })
   });
 
   loadExpenses();
 }
 
-// Load expenses
 async function loadExpenses() {
   const res = await fetch("/get_expenses");
   const data = await res.json();
@@ -67,7 +69,7 @@ async function loadExpenses() {
   let html = "<h4>Expenses:</h4>";
 
   data.expenses.forEach(e => {
-    html += `<p>${e.name}: ₹${e.amount}</p>`;
+    html += `<p>${e.person} spent ₹${e.amount} on ${e.purpose}</p>`;
   });
 
   html += `<h4>Total: ₹${data.total}</h4>`;
