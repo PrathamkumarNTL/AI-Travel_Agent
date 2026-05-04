@@ -4,19 +4,31 @@
   <title>AI Travel Agent</title>
   <style>
     body { font-family: Arial; padding: 20px; }
-    input { width: 300px; padding: 10px; }
-    button { padding: 10px; }
-    #output { margin-top: 20px; }
+    input, button { padding: 10px; margin: 5px; }
+    #chat, #expenses { margin-top: 20px; }
+    .box { border: 1px solid #ccc; padding: 15px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<h2>AI Travel Planner 🌍</h2>
+<h2>🌍 AI Travel Planner</h2>
 
+<!-- CHAT -->
 <input type="text" id="userInput" placeholder="Plan my Goa trip for 3 days under 10k">
 <button onclick="sendMessage()">Ask</button>
 
-<div id="output"></div>
+<div id="chat" class="box"></div>
+
+<hr>
+
+<!-- EXPENSE TRACKER -->
+<h3>👥 Group Expenses</h3>
+
+<input type="text" id="name" placeholder="Name">
+<input type="number" id="amount" placeholder="Amount">
+<button onclick="addExpense()">Add Expense</button>
+
+<div id="expenses" class="box"></div>
 
 <script>
 async function sendMessage() {
@@ -24,23 +36,43 @@ async function sendMessage() {
 
   const res = await fetch("/chat", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ message: input })
   });
 
   const data = await res.json();
 
-  document.getElementById("output").innerHTML = `
-    <h3>Trip to ${data.city}</h3>
-    <p><b>Days:</b> ${data.days}</p>
-    <p><b>Weather:</b> ${data.weather}</p>
-    <p><b>Places:</b> ${data.places.join(", ")}</p>
-    <p><b>Restaurants:</b> ${data.restaurants.join(", ")}</p>
-    <p><b>Total Cost:</b> ₹${data.cost.total}</p>
-    <p><b>Distance:</b> ${data.route.distance_km} km</p>
-  `;
+  document.getElementById("chat").innerText = data.ai_text;
+}
+
+// Add expense
+async function addExpense() {
+  const name = document.getElementById("name").value;
+  const amount = parseInt(document.getElementById("amount").value);
+
+  await fetch("/add_expense", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name, amount })
+  });
+
+  loadExpenses();
+}
+
+// Load expenses
+async function loadExpenses() {
+  const res = await fetch("/get_expenses");
+  const data = await res.json();
+
+  let html = "<h4>Expenses:</h4>";
+
+  data.expenses.forEach(e => {
+    html += `<p>${e.name}: ₹${e.amount}</p>`;
+  });
+
+  html += `<h4>Total: ₹${data.total}</h4>`;
+
+  document.getElementById("expenses").innerHTML = html;
 }
 </script>
 
